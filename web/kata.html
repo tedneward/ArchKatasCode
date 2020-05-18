@@ -83,57 +83,71 @@
     <script src="./js/urlvars.js"></script>
     
     <script>
-    var serverSrcBase = 'https://api.bitbucket.org/1.0/repositories/TedNeward/archkatas/src/tip'
+    // Github REST API has one endpoint I care about: getContents
+    // (documented at https://developer.github.com/v3/repos/contents/)
+    var githubSrcBase = 'https://api.github.com/repos/tedneward/ArchKatas/contents/'
 
+    // These functions require definition before use because browser
     var fetchKata = function(filename) {
-	  $.getJSON(serverSrcBase + '/' + filename + "?callback=?",
-		function(kataData) {
-		  var kata = jQuery.parseJSON(kataData.data)
-		  $('#kata-title').text(kata.title)
-		  $.each(kata.description, function(key, val) {
-			$('#kata-text').append('<p>' + val + '</p>')
-		  })
+      console.log('fetchKata(', filename, ')');
+      fetch(githubSrcBase + filename, {
+        headers: {
+          // must send media type "application/vnd.github.VERSION.raw"
+          // to get contents in non-Base64-encoded format; while I could
+          // convert it, why bother if GH can give it to me raw?
+          Accept: "application/vnd.github.v3.raw"
+        }
+      })
+        .then(response => response.json())
+        .then(json => {
+          console.log("fetchKata", json);
+          $('#kata-title').text(json.title);
+          json.description.forEach( (item) => {
+            $('#kata-text').append('<p>' + item + '</p>');
+          });
           $('#bookmark-url').html('<a target="_blank" href="kata.html?kata=' + filename + '">Bookmark or click this to save your kata choice</a>');
-		}
-	  )
-    }
+        });
+    };
+    var fetchKataList = function(listFn) {
+      console.log('fetchKataList()');
+      fetch(githubSrcBase)
+        .then(response => response.json())
+        .then(json => {
+          var jsons = json.filter( 
+            (item) => (item.type === 'file') && 
+            (item.name.endsWith('.json')));
+          
+          listFn(jsons);
+        });
+    };
 
     var kataname = $.getUrlVar('kata');
-    if (kataname === "all")
-    {
-		$.getJSON(serverSrcBase + '/?callback=?',
-		  function(data) {
-			// data.files { size, path, timestamp, utctimestamp }
-			var items = data.files.length;
-			if (items > 0)
-			{
-			  $('#kata-title').text("All Katas")
-			  $.each(data.files, function(key, val) {
-			  	$('#kata-text').append('<p><a href="kata.html?kata=' + val.path + '">' + val.path + '</a></p>');
-			  })
-			}
-		  });
+    if (kataname === 'all') {
+      // Fetch a full list of katas from the repo
+      // and put each one, linked, in a display
+      fetchKataList(function(jsons) {
+        $('#kata-title').text("All Katas")
+        jsons.forEach( (kata) => {
+          $('#kata-text').append('<p><a href="kata.html?kata=' + kata.file + '">' + kata.name + '</a></p>');
+        });
+      });
     }
-    else if (kataname !== undefined)
-    {
-        // We want a specific kata; we assume it exists already (sort of)
-        fetchKata(kataname)
+    else if (kataname !== undefined) {
+      // We want a specific kata; we assume it exists already
+      fetchKata(kataname);
     }
-    else
-    {
-		// Pull data from BitBucket API
-		$.getJSON(serverSrcBase + '/?callback=?',
-		  function(data) {
-			// data.files { size, path, timestamp, utctimestamp }
-			var items = data.files.length;
-			if (items > 0)
-			{
-			  var which = Math.floor(Math.random() * items);
-			  var path = data.files[which].path
-			  fetchKata(path)
-			}
-		  });
-      }
+    else {
+      // Fetch a full list of katas from the repo
+      // and pick one at random to fetch individually
+      fetchKataList(function(jsons) {
+        // Pick one at random
+        var getRandomInt = function(max) {
+          return Math.floor(Math.random() * Math.floor(max));
+        };
+        var choice = getRandomInt(jsons.length);
+        fetchKata(jsons[choice].name);
+      });
+    }
     </script>
 
   </body>
