@@ -129,7 +129,7 @@
         jsons.forEach( (kata) => {
           console.log("Building out link for ", kata);
           let file = kata.path;
-          let name = kata.path.substring(0, kata.path.length() - 4);
+          let name = kata.path.substring(0, kata.path.length - 4);
           $('#kata-text').append('<p><a href="kata.html?kata=' + kata.file + '">' + kata.name + '</a></p>');
         });
       });
