@@ -116,7 +116,7 @@
           var jsons = json.filter( 
             (item) => (item.type === 'file') && 
             (item.name.endsWith('.json')));
-          
+          console.log("Fetched " + jsons);
           listFn(jsons);
         });
     };
