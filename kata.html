@@ -109,7 +109,7 @@
         });
     };
     var fetchKataList = function(listFn) {
-      console.log('fetchKataList()');
+      console.log('Fetching all katas...');
       fetch(githubSrcBase)
         .then(response => response.json())
         .then(json => {
@@ -146,7 +146,9 @@
         var getRandomInt = function(max) {
           return Math.floor(Math.random() * Math.floor(max));
         };
+        console.log("Choosing kata from among", jsons.length, "choices....");
         var choice = getRandomInt(jsons.length);
+        console.log("Chose", choice, "! That's", jsons[choice].name);
         fetchKata(jsons[choice].name);
       });
     }
