@@ -116,7 +116,6 @@
           var jsons = json.filter( 
             (item) => (item.type === 'file') && 
             (item.name.endsWith('.json')));
-          console.log("Fetched " + jsons);
           listFn(jsons);
         });
     };
@@ -128,6 +127,7 @@
       fetchKataList(function(jsons) {
         $('#kata-title').text("All Katas")
         jsons.forEach( (kata) => {
+          console.log("Building out link for ", kata);
           $('#kata-text').append('<p><a href="kata.html?kata=' + kata.file + '">' + kata.name + '</a></p>');
         });
       });
